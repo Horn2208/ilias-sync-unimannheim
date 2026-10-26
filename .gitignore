@@ -1,0 +1,13 @@
+config.json
+username.txt
+*.log
+*.pem
+*.key
+.env
+cookies*
+session*
+__pycache__/
+Unsortiert/
+ILIAS/
+*.part
+.DS_Store

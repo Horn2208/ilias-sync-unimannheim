@@ -1,0 +1,13 @@
+{
+  "target_dir": "~/Uni",
+  "username": "DEINE-UNI-ID",
+  "keychain_service": "ilias-unima",
+  "mapping": {
+    "kursname-teil": "Zielordner"
+  },
+  "ilias_subdir": "ILIAS",
+  "unsorted_dir": "Unsortiert",
+  "skip": ["license information"],
+  "own_groups": {},
+  "max_mb": 200
+}
