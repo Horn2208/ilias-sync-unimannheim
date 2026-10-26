@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Inoffizieller ILIAS-Sync fuer die Uni Mannheim (nur eigene Kurse). Siehe README.md."""
-import argparse, getpass, json, os, re, subprocess, sys
+import argparse, getpass, hashlib, json, os, re, subprocess, sys
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -26,6 +26,12 @@ def load_config(path):
     if not (cfg["target_dir"] and cfg["username"]):
         sys.exit("config.json: target_dir und username muessen gesetzt sein.")
     return cfg
+
+
+def has_copy(tmp, root):  # identical file (size, then sha256) already anywhere in the course folder?
+    h = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+    same = [p for p in root.rglob("*") if p != tmp and p.is_file() and p.stat().st_size == tmp.stat().st_size]
+    return bool(same) and h(tmp) in map(h, same)
 
 
 def get_password(cfg):  # Keychain -> ILIAS_PASSWORD -> Prompt
@@ -155,6 +161,12 @@ def main():
                 with open(tmp, "wb") as f:
                     for chunk in r.iter_content(1 << 16):
                         f.write(chunk)
+                rel = path.relative_to(root).parts  # course folder: <Ordner>/<ilias_subdir>/... or <unsorted_dir>/<Kurs>/...
+                if has_copy(tmp, root.joinpath(*rel[:1 if rel[1] == cfg["ilias_subdir"] else 2])):
+                    tmp.unlink()
+                    try: path.parent.rmdir()
+                    except OSError: pass
+                    return print(f"[skip, already in course folder] {path.relative_to(root)}")
                 tmp.rename(path)
             self.downloaded += 1
             print(f"[file] {path.relative_to(root)}")
